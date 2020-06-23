@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'Login.apps.LoginConfig',
     'social_django',
-    'tinymce'
 ]
 
 MIDDLEWARE = [

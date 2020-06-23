@@ -1,0 +1,4 @@
+django~=3.0.7
+zipfile37~=0.1.3
+django-excel~=0.0.10
+social-auth-app-django~=3.4.0
