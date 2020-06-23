@@ -21,5 +21,4 @@ urlpatterns = [
     path('',include('social_django.urls',namespace='social')),
     path('admin/', admin.site.urls),
     path('',include('Login.urls')),
-    path('tinymce/', include('tinymce.urls')),
 ]
