@@ -1,13 +1,15 @@
-from django.shortcuts import render,redirect
-from django.http import HttpResponse
-from django.shortcuts import render
-from django import forms
-import zipfile
-from .models import Report,Trader
 import codecs
-from django.views import generic
 import re
+import zipfile
+
+from django import forms
 from django.contrib.auth import logout as auth_logout
+from django.http import HttpResponse
+from django.shortcuts import redirect
+from django.shortcuts import render
+from django.views import generic
+
+from .models import Report, Trader
 
 
 def logout(request):
