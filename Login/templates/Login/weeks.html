@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weeks</title>
+    <style>
+        .vertical-menu {
+          text-align:center;
+          width: 100%;
+          height: 150px;
+          overflow-y: auto;
+        }
+
+        .vertical-menu a {
+          background-color: #eee;
+          color: black;
+          display: block;
+          padding: 12px;
+          text-decoration: none;
+        }
+
+        .vertical-menu a:hover {
+          background-color: #ccc;
+        }
+
+        .vertical-menu a.active {
+          background-color: #4CAF50;
+          color: white;
+        }
+    </style>
+</head>
+<body>
+<div class="vertical-menu">
+{% for week in weeks %}
+    <a href="/report?week={{ week }}">{{ week }}</a>
+{% endfor %}
+</div>
+</body>
+</html>

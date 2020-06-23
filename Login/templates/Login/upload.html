@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+UPLOAD ZIP
+<form class ="form-class" action="" enctype="multipart/form-data"  method="post">
+        {% csrf_token %}
+        {{ form.file }}
+        {% csrf_token %}
+        <br><input id="btn" name="reports" type="submit" value="Upload data">
+</form>
+UPLOAD TRADERS_MAPPING
+<form class ="form-class" action="" enctype="multipart/form-data"  method="post">
+        {% csrf_token %}
+        {{ form.file }}
+        {% csrf_token %}
+        <br><input id="btn1" name="traders" type="submit" value="Upload data">
+</form>
+</body>
+</html>
