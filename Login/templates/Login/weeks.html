@@ -3,12 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <title>Weeks</title>
+    {% if admin %}
+    {% include 'Login/navbar.html' with isadmin=True  %}
+    {% else %}
+    {% include 'Login/navbar.html' with isadmin=False  %}
+    {% endif %}
     <style>
         .vertical-menu {
           text-align:center;
-          width: 100%;
+          width: 90%;
           height: 150px;
           overflow-y: auto;
+          float:right;
         }
 
         .vertical-menu a {

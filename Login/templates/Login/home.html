@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+    {% if admin %}
+    {% include 'Login/navbar.html' with isadmin=True  %}
+    {% else %}
+    {% include 'Login/navbar.html' with isadmin=False  %}
+    {% endif %}
+</head>
+<body>
+<div style="position:fixed;margin-left:45%;padding:1px 16px;height:100%;top:50%;font-size:3vh;">
+    Welcome to the portal, {{ name }}.
+</div>
+</body>
+</html>

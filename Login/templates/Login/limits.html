@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Limits</title>
+    {% if admin %}
+    {% include 'Login/navbar.html' with isadmin=True  %}
+    {% else %}
+    {% include 'Login/navbar.html' with isadmin=False  %}
+    {% endif %}
+    <style>
+        div{
+            box-sizing: border-box;
+            width:90%;
+            float:right;
+            padding:2px;
+        }
+
+        .view {
+          margin-left:20%;
+          font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+          border-collapse: collapse;
+          width: 60%;
+          text-align: center;
+          table-layout:fixed;
+          overflow-y:auto;
+        }
+
+        .view td, #view th {
+          border: 1px solid #ddd;
+          padding: 5px;
+        }
+
+        .view tr:nth-child(even){background-color: #f2f2f2;}
+
+        .view tr:hover {background-color: #ddd;}
+
+        .view th {
+          padding-top: 12px;
+          padding-bottom: 12px;
+
+          background-color: #4CAF50;
+          color: white;
+        }
+        input{
+        width:40%;
+        }
+        h4{
+            margin-top:1px;
+        }
+    </style>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    {% include 'Login/load_dropbox.html' %}
+</head>
+<body>
+
+{% if request_sent %}
+    <script>alert("Request sent");</script>
+{% endif %}
+{% if error %}
+    <script>alert("Please fill the form")</script>
+{% endif %}
+
+<div>
+    <h4>Your current limits are given below. You can fill the form to request updates.</h4>
+    <form method="post" action="">
+        {% csrf_token %}
+        <table class="view">
+            <tr>
+                <th>Products</th>
+                <th>Type</th>
+                <th>Current Limits</th>
+                <th>Request Limits</th>
+                <th>Request Clips</th>
+            </tr>
+                {% for i in ct %}
+                    <tr>
+                        <td>{{ i.0 }}</td>
+                        <td>{{ i.1 }}</td>
+                        <td>{{ i.2 }}</td>
+                        <td><input name="limit {{ i.0 }} {{ i.1 }}" type="number"></td>
+                        <td><input name="clip {{ i.0 }} {{ i.1 }}" type="number"></td>
+                    </tr>
+                {% endfor %}
+            <tr><td colspan="5"><input type="submit" name="submit1" value="Request update"></td></tr>
+        </table>
+    </form>
+</div>
+<div>
+    <br>
+    <hr>
+    <h4><b>Please fill the form given below, to request for new product.</b> </h4>
+    <form  method="post" action="">
+        {% csrf_token %}
+        <table class="view" style="table-layout:auto;">
+            <tr>
+                <th>Trading Software</th>
+                <th>Product</th>
+                <th>Type</th>
+                <th>Limit</th>
+                <th>Clip</th>
+            </tr>
+            <tr>
+                <td>
+                    <select id="trading_acc" name="acc">
+                    {% for acc in trading_accounts %}
+                        <option value="{{ acc }}">{{ acc }}</option>
+                    {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    <select id="products" name="prd">
+                    </select>
+                </td>
+                <td>
+                    <select id="type" name="prd-type">
+                    </select>
+                </td>
+                <td>
+                    <input type="number" name="addlimit">
+                </td>
+                <td>
+                    <input type="number" name="addclip">
+                </td>
+            </tr>
+            <tr>
+                <td colspan="5"><input type="submit" name="submit2" value="Request product"></td>
+            </tr>
+        </table>
+    </form>
+</div>
+</body>
+</html>

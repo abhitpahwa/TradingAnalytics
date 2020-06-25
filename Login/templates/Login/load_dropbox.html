@@ -1,0 +1,105 @@
+<script>
+        $(document).ready(function(){
+            var stellar_options=[];
+            var tt_options=[];
+
+            {% for i in stellar %}
+                var temp_option=[]
+                temp_option.push(unescape("{{ i.0 }}"));
+                temp_option.push(unescape("{{ i.1 }}"));
+                temp_option.push(unescape("{{ i.2 }}"));
+                stellar_options.push(temp_option);
+            {% endfor %}
+            {% for i in tt %}
+                var temp_option=[]
+                temp_option.push(unescape("{{ i.0 }}"));
+                temp_option.push(unescape("{{ i.1 }}"));
+                tt_options.push(temp_option);
+            {% endfor %}
+
+           var product_options=[];
+           var type_options=[];
+
+          $.each(stellar_options,function(k,v){
+            product_options.push(v[0]);
+          });
+            product_options=jQuery.unique(product_options);
+
+           $.each(product_options,function(k,v){
+            $("#products").append($("<option></option>").attr("value",v).text(v));
+           });
+
+           type_options=[];
+           $.each(stellar_options,function(k,v){
+                var chosen_product=$("#products").children("option:selected").val();
+                if(v[0]==chosen_product)
+                    type_options.push(v[1]);
+                type_options=jQuery.unique(type_options);
+            });
+
+           $.each(type_options,function(k,v){
+                $("#type").append($("<option></option>").text(v));
+            });
+
+
+          $("#trading_acc").change(function () {
+              type_options=[];
+              product_options=[];
+              var acc = $(this).val();
+              $("#products").find('option').remove();
+
+              if(acc=="Stellar")
+                  $.each(stellar_options,function(k,v){
+                    product_options.push(v[0]);
+                  });
+              else if(acc=="TT")
+                  $.each(tt_options,function(k,v){
+                    product_options.push(v[0]);
+                  });
+
+              product_options=jQuery.unique(product_options);
+              $.each(product_options,function(k,v){
+                $("#products").append($("<option></option>").attr("value",v).text(v));
+              });
+
+               if(acc=="Stellar")
+                  $.each(stellar_options,function(k,v){
+                    var chosen_product=$("#products").children("option:selected").val();
+                    if(v[0]==chosen_product)
+                        type_options.push(v[1]);
+                    });
+               else if(acc=="TT")
+                   $.each(tt_options,function(k,v){
+                        var chosen_product=$("#products").children("option:selected").val();
+                        if(v[0]==chosen_product)
+                            type_options.push(v[1]);
+                    });
+               type_options=jQuery.unique(type_options);
+               $.each(type_options,function(k,v){
+                    $("#type").append($("<option></option>").text(v));
+               });
+            });
+
+            $("#products").change(function () {
+                var acc = $("#trading_acc").val();
+                var chosen_product=$("#products").children("option:selected").val();
+                type_options=[];
+
+                if(acc=="Stellar")
+                  $.each(stellar_options,function(k,v){
+                    if(v[0]==chosen_product)
+                        type_options.push(v[1]);
+                  });
+                else if(acc=="TT")
+                  $.each(tt_options,function(k,v){
+                    if(v[0]==chosen_product)
+                        type_options.push(v[1]);
+                  });
+                $("#type").find('option').remove();
+                type_options=jQuery.unique(type_options);
+                $.each(type_options,function(k,v){
+                    $("#type").append($("<option></option>").text(v));
+               });
+            });
+        });
+    </script>

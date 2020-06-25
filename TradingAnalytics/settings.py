@@ -133,7 +133,13 @@ SOCIAL_AUTH_URL_NAMESPACE = 'social'
 # SOCIAL_AUTH_GOOGLE_OAUTH2_WHITELISTED_DOMAINS = ['axxela.in']
 SOCIAL_AUTH_ENABLED_BACKENDS = ('google-oauth2',)
 LOGIN_URL = '/auth/login/google_auth2/'
-LOGIN_REDIRECT_URL='/weeks'
+LOGIN_REDIRECT_URL='/home'
 LOGOUT_REDIRECT_URL='/'
 
 FILE_UPLOAD_HANDLERS=("django_excel.ExcelMemoryFileUploadHandler","django_excel.TemporaryExcelFileUploadHandler")
+
+EMAIL_HOST="smtp.gmail.com"
+EMAIL_PORT=587
+EMAIL_HOST_USER="risk@axxela.in"
+EMAIL_HOST_PASSWORD="risk@123"
+EMAIL_USE_TLS=True
