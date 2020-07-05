@@ -92,7 +92,7 @@
     <h4><b>Please fill the form given below, to request for new product.</b> </h4>
     <form  method="post" action="">
         {% csrf_token %}
-        <table class="view" style="table-layout:auto;">
+        <table class="view" id="addform" style="table-layout:auto;">
             <tr>
                 <th>Trading Software</th>
                 <th>Product</th>
@@ -100,31 +100,38 @@
                 <th>Limit</th>
                 <th>Clip</th>
             </tr>
+            <tbody>
             <tr>
                 <td>
-                    <select id="trading_acc" name="acc">
+                    <select id="trading_acc1" name="acc1">
                     {% for acc in trading_accounts %}
                         <option value="{{ acc }}">{{ acc }}</option>
                     {% endfor %}
                     </select>
                 </td>
                 <td>
-                    <select id="products" name="prd">
+                    <select id="products1" name="prd1">
                     </select>
                 </td>
                 <td>
-                    <select id="type" name="prd-type">
+                    <select id="type1" name="prd-type1">
                     </select>
                 </td>
                 <td>
-                    <input type="number" name="addlimit">
+                    <input type="number" name="addlimit1">
                 </td>
                 <td>
-                    <input type="number" name="addclip">
+                    <input type="number" name="addclip1">
                 </td>
             </tr>
+            </tbody>
             <tr>
-                <td colspan="5"><input type="submit" name="submit2" value="Request product"></td>
+                <td colspan="4"><input type="submit" name="submit2" value="Request product"></td>
+                <td>
+                    <button type="button" class="add">
+                        Add
+                    </button>
+                </td>
             </tr>
         </table>
     </form>

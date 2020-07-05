@@ -1,4 +1,6 @@
 <script>
+
+
         $(document).ready(function(){
             var stellar_options=[];
             var tt_options=[];
@@ -20,33 +22,34 @@
            var product_options=[];
            var type_options=[];
 
-          $.each(stellar_options,function(k,v){
+          $.each(tt_options,function(k,v){
             product_options.push(v[0]);
           });
             product_options=jQuery.unique(product_options);
 
            $.each(product_options,function(k,v){
-            $("#products").append($("<option></option>").attr("value",v).text(v));
+            $("#products1").append($("<option></option>").attr("value",v).text(v));
            });
 
            type_options=[];
-           $.each(stellar_options,function(k,v){
-                var chosen_product=$("#products").children("option:selected").val();
+           $.each(tt_options,function(k,v){
+                var chosen_product=$("#products1").children("option:selected").val();
                 if(v[0]==chosen_product)
                     type_options.push(v[1]);
                 type_options=jQuery.unique(type_options);
             });
 
            $.each(type_options,function(k,v){
-                $("#type").append($("<option></option>").text(v));
+                $("#type1").append($("<option></option>").text(v));
             });
 
 
-          $("#trading_acc").change(function () {
+          $("#trading_acc2").change(function () {
               type_options=[];
               product_options=[];
+              console.log($(this).attr('id'));
               var acc = $(this).val();
-              $("#products").find('option').remove();
+              $("#products1").find('option').remove();
 
               if(acc=="Stellar")
                   $.each(stellar_options,function(k,v){
@@ -59,7 +62,7 @@
 
               product_options=jQuery.unique(product_options);
               $.each(product_options,function(k,v){
-                $("#products").append($("<option></option>").attr("value",v).text(v));
+                $("#products1").append($("<option></option>").attr("value",v).text(v));
               });
 
                if(acc=="Stellar")
@@ -76,13 +79,13 @@
                     });
                type_options=jQuery.unique(type_options);
                $.each(type_options,function(k,v){
-                    $("#type").append($("<option></option>").text(v));
+                    $("#type1").append($("<option></option>").text(v));
                });
             });
 
-            $("#products").change(function () {
-                var acc = $("#trading_acc").val();
-                var chosen_product=$("#products").children("option:selected").val();
+            $("#products1").change(function () {
+                var acc = $("#trading_acc1").val();
+                var chosen_product=$("#products1").children("option:selected").val();
                 type_options=[];
 
                 if(acc=="Stellar")
@@ -95,11 +98,104 @@
                     if(v[0]==chosen_product)
                         type_options.push(v[1]);
                   });
-                $("#type").find('option').remove();
+                $("#type1").find('option').remove();
                 type_options=jQuery.unique(type_options);
                 $.each(type_options,function(k,v){
-                    $("#type").append($("<option></option>").text(v));
+                    $("#type1").append($("<option></option>").text(v));
                });
             });
+
+            $(".add").click(function(){
+                var num=$('#addform tr').length-1;
+                var markup="<tr><td><select id='trading_acc"+num+"'  name='acc"+num+"'>"+
+                "{% for acc in trading_accounts %}<option value='{{ acc }}'>{{ acc }}</option>{% endfor %}</select></td>"+
+                "<td><select id='products"+num+"' name='prd"+num+"'></select></td>"+
+                "<td><select id='type"+num+"'  name='prd-type"+num+"'></select></td>"+
+                "<td><input type='number' name='addlimit"+num+"'></td>"+
+                "<td><input type='number' name='addclip"+num+"'></td></tr>"
+                $("#addform tr:last").before(markup);
+                var product_options=[];
+               var type_options=[];
+
+              $.each(tt_options,function(k,v){
+                product_options.push(v[0]);
+              });
+                product_options=jQuery.unique(product_options);
+
+               $.each(product_options,function(k,v){
+                $("#products"+num).append($("<option></option>").attr("value",v).text(v));
+               });
+
+               type_options=[];
+               $.each(tt_options,function(k,v){
+                    var chosen_product=$("#products"+num).children("option:selected").val();
+                    if(v[0]==chosen_product)
+                        type_options.push(v[1]);
+                    type_options=jQuery.unique(type_options);
+                });
+
+               $.each(type_options,function(k,v){
+                    $("#type"+num).append($("<option></option>").text(v));
+                });
+                $("#trading_acc"+num).change(function () {
+                  type_options=[];
+                  product_options=[];
+                  var acc = $(this).val();
+                  $("#products"+num).find('option').remove();
+
+                  if(acc=="Stellar")
+                      $.each(stellar_options,function(k,v){
+                        product_options.push(v[0]);
+                      });
+                  else if(acc=="TT")
+                      $.each(tt_options,function(k,v){
+                        product_options.push(v[0]);
+                      });
+
+                  product_options=jQuery.unique(product_options);
+                  $.each(product_options,function(k,v){
+                    $("#products"+num).append($("<option></option>").attr("value",v).text(v));
+                  });
+
+                   if(acc=="Stellar")
+                      $.each(stellar_options,function(k,v){
+                        var chosen_product=$("#products"+num).children("option:selected").val();
+                        if(v[0]==chosen_product)
+                            type_options.push(v[1]);
+                        });
+                   else if(acc=="TT")
+                       $.each(tt_options,function(k,v){
+                            var chosen_product=$("#products"+num).children("option:selected").val();
+                            if(v[0]==chosen_product)
+                                type_options.push(v[1]);
+                        });
+                   type_options=jQuery.unique(type_options);
+                   $.each(type_options,function(k,v){
+                        $("#type"+num).append($("<option></option>").text(v));
+                   });
+                });
+
+                $("#products"+num).change(function () {
+                    var acc = $("#trading_acc"+num).val();
+                    var chosen_product=$("#products"+num).children("option:selected").val();
+                    type_options=[];
+
+                    if(acc=="Stellar")
+                      $.each(stellar_options,function(k,v){
+                        if(v[0]==chosen_product)
+                            type_options.push(v[1]);
+                      });
+                    else if(acc=="TT")
+                      $.each(tt_options,function(k,v){
+                        if(v[0]==chosen_product)
+                            type_options.push(v[1]);
+                      });
+                    $("#type"+num).find('option').remove();
+                    type_options=jQuery.unique(type_options);
+                    $.each(type_options,function(k,v){
+                        $("#type"+num).append($("<option></option>").text(v));
+                   });
+                });
+                });
         });
     </script>

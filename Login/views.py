@@ -110,6 +110,8 @@ def GetContext(request):
 
     user_hashes = []
     trading_accounts = list(set(sheet.col_values(1)[1:]))
+    trading_accounts.remove('TT')
+    trading_accounts.insert(0,'TT')
 
     stellar_options = []
     tt_options = []
@@ -185,29 +187,33 @@ def MyLimits(request):
             # send_mail(subject,body,"risk@axxela.in",["abhit.pahwa@axxela.in"],fail_silently=False)
             return render(request,'Login/limits.html',context=context_pass)
         elif 'submit2' in request.POST.keys():
-            trading_acc = request.POST['acc']
-            product = request.POST['prd']
-            product_type = request.POST['prd-type']
-            limit = request.POST['addlimit']
-            clip = request.POST['addclip']
+            keys=request.POST.keys()
+            trading_accs = [request.POST[i] for i in keys if "acc" in i]
+            products=[request.POST[i] for i in keys if "prd" in i and "prd-type" not in i]
+            product_types=[request.POST[i] for i in keys if "prd-type" in i]
+            limits=[request.POST[i] for i in keys if "addlimit" in i]
+            clips=[request.POST[i] for i in keys if "addclip" in i]
 
-            subject = "Request: Add product"
-
-            if limit == "" and clip == "":
+            subject = "Request: Add products"
+            limits_empty=[i for i in limits if i!='']
+            clips_empty=[i for i in clips if i!='']
+            if len(limits_empty)==0 and len(clips_empty)==0:
                 context_pass["error"] = True
                 return render(request, 'Login/limits.html', context=context_pass)
 
-            body = "Hi, can you please process the following request to add product!\n\n" + \
-                   "Account: " + account + "\n" + \
-                   "Product: " + product + "\n" + \
-                   "Type: " + product_type + "\n" + \
-                   "Limit: " + limit + "\n" + \
-                   "Clip: " + clip + "\n\n" + \
-                   "Thanks and Regards" + "\n" + \
-                   request.user.get_full_name() + "\n\n" + \
+            body = "Hi, can you please process the following request to add products!\n\n"
+            for i in range(len(trading_accs)):
+                prd="Account: " + trading_accs[i] + "\n" + \
+                    "Product: " + products[i] + "\n" + \
+                    "Type: " + product_types[i] + "\n" + \
+                    "Limit: " + limits[i] + "\n" + \
+                   "Clip: " + clips[i] + "\n\n"
+                body+=prd
+            body+="Thanks and Regards" + "\n" + request.user.get_full_name() + "\n\n" + \
                    "TimeStamp: " + str(datetime.datetime.now().strftime("%Y-%m-%d, %H:%M")) + "\n"
             context_pass["request_sent"] = True
-            # send_mail(subject,body,"risk@axxela.in",["abhit.pahwa@axxela.in"],fail_silently=False)
+            print(body)
+            # # send_mail(subject,body,"risk@axxela.in",["abhit.pahwa@axxela.in"],fail_silently=False)
             return render(request, 'Login/limits.html', context=context_pass)
 
 
