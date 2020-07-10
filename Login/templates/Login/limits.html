@@ -67,6 +67,7 @@
         {% csrf_token %}
         <table class="view">
             <tr>
+                <th>Trading Software</th>
                 <th>Products</th>
                 <th>Type</th>
                 <th>Current Limits</th>
@@ -78,11 +79,12 @@
                         <td>{{ i.0 }}</td>
                         <td>{{ i.1 }}</td>
                         <td>{{ i.2 }}</td>
-                        <td><input name="limit {{ i.0 }} {{ i.1 }}" type="number"></td>
-                        <td><input name="clip {{ i.0 }} {{ i.1 }}" type="number"></td>
+                        <td>{{ i.3 }}</td>
+                        <td><input name="limit {{ i.0 }} {{ i.1 }} {{ i.2 }}" type="number"></td>
+                        <td><input name="clip {{ i.0 }} {{ i.1 }} {{ i.2 }}" type="number"></td>
                     </tr>
                 {% endfor %}
-            <tr><td colspan="5"><input type="submit" name="submit1" value="Request update"></td></tr>
+            <tr><td colspan="6"><input type="submit" name="submit1" value="Request update"></td></tr>
         </table>
     </form>
 </div>

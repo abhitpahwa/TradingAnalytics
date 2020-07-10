@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Request History</title>
+    <style>
+        div{
+            box-sizing: border-box;
+            width:90%;
+            float:right;
+            padding:2px;
+        }
+        .view {
+          margin-left:20%;
+          font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+          border-collapse: collapse;
+          width: 60%;
+          text-align: center;
+          table-layout:fixed;
+          overflow-y:auto;
+        }
+
+        .view td, #view th {
+          border: 1px solid #ddd;
+          padding: 5px;
+        }
+
+        .view tr:nth-child(even){background-color: #f2f2f2;}
+
+        .view tr:hover {background-color: #ddd;}
+
+        .view th {
+          padding-top: 12px;
+          padding-bottom: 12px;
+
+          background-color: #4CAF50;
+          color: white;
+        }
+    </style>
+    {% include 'Login/navbar.html'  %}
+</head>
+<body>
+    <div>
+        <table class="view">
+            <tr>
+                <th>Request ID</th>
+                <th>Trading Software</th>
+                <th>Product</th>
+                <th>Type</th>
+                <th>Limit</th>
+                <th>Clip</th>
+            </tr>
+            {% for req in requests %}
+                <tr>
+                    <td>{{ req.0 }}</td>
+                    <td>{{ req.1 }}</td>
+                    <td>{{ req.2 }}</td>
+                    <td>{{ req.3 }}</td>
+                    <td>{{ req.4 }}</td>
+                    <td>{{ req.5 }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
+</body>
+</html>

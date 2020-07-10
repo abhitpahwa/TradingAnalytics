@@ -8,7 +8,7 @@
           margin: 0;
         }
 
-        ul {
+        ul:not(.list) {
           list-style-type: none;
           margin: 0;
           padding: 0;
@@ -40,11 +40,14 @@
         <li><a href="/home">Home</a></li>
         <li><a href="/weeks">View Reports</a></li>
         <li><a href="/mylimits">View Limits</a></li>
-        <li><a href="#">Request Status</a></li>
-        {% if isadmin %}
+        <li><a href="/requeststatus">Request Status</a></li>
+        {% if admin %}
         <li><a href="/adminlogin">Admin</a></li>
         {% endif %}
-        <li><a href="/">Logout</a></li>
+        {% if mentor %}
+        <li><a href="/mentor">Mentor</a></li>
+        {% endif %}
+        <li><a href="/logout">Logout</a></li>
     </ul>
 </body>
 </html>

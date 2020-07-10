@@ -25,7 +25,7 @@ SECRET_KEY = '$vk@7fumwdh+knqrr((!5)8ftjsss^1impw_8bi+rxt#6xvg!g'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.43.199','127.0.0.1']
 
 
 # Application definition
@@ -135,6 +135,8 @@ SOCIAL_AUTH_ENABLED_BACKENDS = ('google-oauth2',)
 LOGIN_URL = '/auth/login/google_auth2/'
 LOGIN_REDIRECT_URL='/home'
 LOGOUT_REDIRECT_URL='/'
+
+
 
 FILE_UPLOAD_HANDLERS=("django_excel.ExcelMemoryFileUploadHandler","django_excel.TemporaryExcelFileUploadHandler")
 

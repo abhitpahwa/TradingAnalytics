@@ -11,5 +11,8 @@ urlpatterns=[
     path('adminlogin/',views.AdminView),
     path('report/',views.ReportView),
     path('mylimits/',views.MyLimits),
+    path('requeststatus/',views.RequestHistory),
+    path('mentor/',views.MentorView),
+    path('logout/',views.logout)
 ]
 

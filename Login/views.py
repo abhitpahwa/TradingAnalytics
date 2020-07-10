@@ -4,11 +4,12 @@ import zipfile
 import datetime
 from django import forms
 from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.views import generic
-from .models import Report, Trader
+from .models import *
 
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -16,6 +17,7 @@ from django.core.mail import send_mail
 
 def logout(request):
     auth_logout(request)
+    # User.objects.get(username=request.user.get_username()).delete()
     return redirect("/")
 
 def IndexView(request):
@@ -27,12 +29,25 @@ def checkadmin(name):
         isadmin = True
     return isadmin
 
+def checkmentor(name):
+    # print(name)
+    ismentor=False
+    mentors=set(Trader.objects.values_list("mentor"))
+    mentors=[i[0] for i in mentors]
+    # print(name+"@axxela.in")
+    if name+"@axxela.in" in mentors:
+        ismentor=True
+    # print(ismentor)
+    # print(mentors)
+    return ismentor
+
 class UploadFileForm(forms.Form):
     file = forms.FileField(label="Choose File",widget=forms.ClearableFileInput(attrs={'multiple':True}))
 
 def HomeView(request):
     isadmin=checkadmin(request.user.get_username())
-    return render(request,'Login/home.html',context={'name':request.user.get_full_name(),'admin':isadmin})
+    ismentor=checkmentor(request.user.get_username())
+    return render(request,'Login/home.html',context={'name':request.user.get_full_name(),'admin':isadmin,'mentor':ismentor})
 
 class Weeks(generic.ListView):
     template_name = 'Login/weeks.html'
@@ -53,7 +68,7 @@ class Weeks(generic.ListView):
 
 def ReportView(request):
     # email=request.user.get_username()+"@axxela.in"
-    email="manoj.korrapati@axxela.in"
+    email="prince@axxela.in"
     trader_acc=Trader.objects.get(email=email)
     account=getattr(trader_acc,"account")
     week=request.GET.get('week','WEEK25')
@@ -84,7 +99,7 @@ def AdminView(request):
                 Trader.objects.all().delete()
                 request.FILES['file'].save_to_database(
                     model=Trader,
-                    mapdict=['account','email']
+                    mapdict=['account','email','mentor']
                 )
                 return HttpResponse("done")
 
@@ -100,6 +115,7 @@ def GetWorksheet():
 
 def GetContext(request):
     isadmin = checkadmin(request.user.get_username())
+    ismentor = checkmentor(request.user.get_username())
     # email=request.user.get_username()+"@axxela.in"
     # trader_acc = Trader.objects.get(email=email)
     # account = getattr(trader_acc, "account")
@@ -128,6 +144,8 @@ def GetContext(request):
                 temp[k] = v
             elif k == account:
                 temp[k] = v
+            elif k=="Account":
+                temp[k]=v
         if "Stellar" in dictionary.values():
             stellar_options.append(options_temp)
         elif "TT" in dictionary.values():
@@ -140,6 +158,7 @@ def GetContext(request):
     context_pass = {}
     context_pass["ct"] = ct
     context_pass["admin"] = isadmin
+    context_pass["mentor"] = ismentor
     context_pass["trading_accounts"] = trading_accounts
     context_pass['stellar'] = stellar_options
     context_pass['tt'] = tt_options
@@ -164,13 +183,43 @@ def MyLimits(request):
                                                                                  or name.startswith("clip")) \
                                                                                  and request.POST[name]!='']
             msg=""
+
+            email = "prince@axxela.in"
+            trader = Trader.objects.get(email=email)
+
+            last_id = len(Request_Trader_Mapping.objects.all())
+
+            request_ids=[]
             for inp in inputs:
                 temp=inp[0].split()
                 if temp[0]=="limit":
-                    msg+="Product: "+temp[1]+"\nType: "+temp[2]+"\nRequested limit: "+inp[1]+"\n\n"
+                    last_id += 1
+                    new_id = "UpdateRequest-" + str(last_id)
+                    curr_request=Request_Trader_Mapping(request_id=new_id, \
+                                                        account=getattr(trader, 'account'), \
+                                                        email=getattr(trader, 'email'))
+                    curr_request.save()
+                    request_ids.append(new_id)
+                    msg+="Trading Software: "+temp[1]+"\nProduct: "+temp[2]+"\nType: "+temp[3]+"\nRequested limit: "+inp[1]+"\n\n"
+                    curr_request_details=Request(request_id=Request_Trader_Mapping.objects.get(request_id=new_id),\
+                                                 trading_software=temp[1],\
+                                                 product=temp[2],product_type=temp[3],\
+                                                 requested_limit=inp[1])
+                    curr_request_details.save()
                 elif temp[0]=="clip":
-                    msg += "Product: " + temp[1] + "\nType: " + temp[2] + "\nRequested clip: " + inp[1] + "\n\n"
-
+                    last_id += 1
+                    new_id = "UpdateRequest-" + str(last_id)
+                    curr_request = Request_Trader_Mapping(request_id=new_id,\
+                                                          account=getattr(trader, 'account'),\
+                                                          email=getattr(trader, 'email'))
+                    curr_request.save()
+                    request_ids.append(new_id)
+                    msg +="Trading Software: "+temp[1]+"\nProduct: " + temp[2] + "\nType: " + temp[3] + "\nRequested clip: " + inp[1] + "\n\n"
+                    curr_request_details = Request(request_id=Request_Trader_Mapping.objects.get(request_id=new_id), \
+                                                   trading_software=temp[1], \
+                                                   product=temp[2], product_type=temp[3], \
+                                                   requested_clip=inp[1])
+                    curr_request_details.save()
 
             if msg=="":
                 context_pass["error"]=True
@@ -182,9 +231,13 @@ def MyLimits(request):
                 request.user.get_full_name()+"\n\n"+ \
                  "TimeStamp: " + str(datetime.datetime.now().strftime("%Y-%m-%d, %H:%M")) + "\n"
 
-            context_pass["request_sent"]=True
 
+            context_pass["request_sent"]=True
             # send_mail(subject,body,"risk@axxela.in",["abhit.pahwa@axxela.in"],fail_silently=False)
+
+
+
+
             return render(request,'Login/limits.html',context=context_pass)
         elif 'submit2' in request.POST.keys():
             keys=request.POST.keys()
@@ -202,18 +255,86 @@ def MyLimits(request):
                 return render(request, 'Login/limits.html', context=context_pass)
 
             body = "Hi, can you please process the following request to add products!\n\n"
+            body+="Account: "+account+"\n"
+
+            email = "prince@axxela.in"
+            trader = Trader.objects.get(email=email)
+
+            last_id = len(Request_Trader_Mapping.objects.all())
+
             for i in range(len(trading_accs)):
-                prd="Account: " + trading_accs[i] + "\n" + \
+                last_id += 1
+                new_id = "AddRequest-" + str(last_id)
+                curr_request = Request_Trader_Mapping(request_id=new_id, \
+                                                      account=getattr(trader, 'account'), \
+                                                      email=getattr(trader, 'email'))
+                curr_request.save()
+                prd="Trading Software: " + trading_accs[i] + "\n" + \
                     "Product: " + products[i] + "\n" + \
                     "Type: " + product_types[i] + "\n" + \
                     "Limit: " + limits[i] + "\n" + \
                    "Clip: " + clips[i] + "\n\n"
                 body+=prd
+                curr_limit=limits[i] if limits[i]!='' else 0
+                curr_clip=clips[i] if clips[i]!='' else 0
+                curr_request_details = Request(request_id=Request_Trader_Mapping.objects.get(request_id=new_id), \
+                                               trading_software=trading_accs[i], \
+                                               product=products[i], product_type=product_types[i], \
+                                               requested_limit=curr_limit,requested_clip=curr_clip)
+                curr_request_details.save()
             body+="Thanks and Regards" + "\n" + request.user.get_full_name() + "\n\n" + \
                    "TimeStamp: " + str(datetime.datetime.now().strftime("%Y-%m-%d, %H:%M")) + "\n"
             context_pass["request_sent"] = True
-            print(body)
             # # send_mail(subject,body,"risk@axxela.in",["abhit.pahwa@axxela.in"],fail_silently=False)
             return render(request, 'Login/limits.html', context=context_pass)
 
+def RequestHistory(request):
+    user_requests=Request_Trader_Mapping.objects.filter(email="prince@axxela.in")
+    user_requests_details=[]
+    for i in user_requests:
+        req_id=i.request_id
+        temp=[]
+        temp.append(req_id)
+        temp_obj=Request.objects.get(request_id=req_id)
+        temp.append(getattr(temp_obj,'trading_software'))
+        temp.append(getattr(temp_obj, 'product'))
+        temp.append(getattr(temp_obj, 'product_type'))
+        temp_limit=getattr(temp_obj, 'requested_limit')
+        temp_clip=getattr(temp_obj, 'requested_clip')
+        if temp_limit!=None:
+            temp.append(temp_limit)
+        else:
+            temp.append('')
+        if temp_clip!=None:
+            temp.append(temp_clip)
+        else:
+            temp.append('')
+        user_requests_details.append(temp)
+    isadmin = checkadmin(request.user.get_username())
+    ismentor = checkmentor(request.user.get_username())
+    return render(request,'Login/request_history.html',context={"admin":isadmin,"mentor":ismentor,"requests":user_requests_details})
 
+def MentorView(request):
+    all_requests=Request_Trader_Mapping.objects.all()
+    accounts=set([getattr(i,"email") for i in all_requests])
+    traders=[Trader.objects.get(email=i) for i in list(accounts)]
+    mentors=[getattr(i,"mentor") for i in traders]
+    my_traders=[traders[i] for i in range(len(mentors)) if mentors[i]==request.user.email]
+    my_traders_requests={}
+    my_traders_detailed_requests={}
+    for trader in my_traders:
+        trader_email=getattr(trader, "email")
+        trader_requests=Request_Trader_Mapping.objects.filter(email=trader_email)
+        temp=[getattr(i,"request_id") for i in trader_requests]
+        temp_requests=[Request.objects.get(request_id=i) for i in temp]
+        temp_detail=[[getattr(i,"request_id"),getattr(i,"trading_software"),getattr(i,"product"),\
+                      getattr(i,"product_type"),getattr(i,"requested_limit"),getattr(i,"requested_clip")] \
+                     for i in temp_requests]
+        for i in temp_detail:
+            i[0]=getattr(i[0],'request_id')
+        my_traders_requests[trader_email]=temp
+        my_traders_detailed_requests[trader_email]=temp_detail
+    # print(my_traders_detailed_requests)
+    isadmin = checkadmin(request.user.get_username())
+    ismentor = checkmentor(request.user.get_username())
+    return render(request,'Login/mentor_view.html',context={"admin":isadmin,"mentor":ismentor,"requests":my_traders_requests,'details':my_traders_detailed_requests})
