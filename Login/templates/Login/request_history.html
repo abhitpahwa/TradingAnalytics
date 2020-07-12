@@ -49,6 +49,8 @@
                 <th>Type</th>
                 <th>Limit</th>
                 <th>Clip</th>
+                <th>Mentor Approval</th>
+                <th>Risk Approval</th>
             </tr>
             {% for req in requests %}
                 <tr>
@@ -58,6 +60,8 @@
                     <td>{{ req.3 }}</td>
                     <td>{{ req.4 }}</td>
                     <td>{{ req.5 }}</td>
+                    <td>{{ req.6 }}</td>
+                    <td>{{ req.7 }}</td>
                 </tr>
             {% endfor %}
         </table>

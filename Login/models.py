@@ -18,7 +18,8 @@ class Request_Trader_Mapping(models.Model):
     request_id=models.CharField(max_length=50,primary_key=True)
     account = models.CharField(max_length=50,null=True)
     email = models.EmailField(null=True)
-
+    mentor_approval=models.CharField(max_length=8,default="Pending")
+    risk_approval=models.CharField(max_length=8,default="Pending")
     def __str__(self):
         return self.request_id
 
@@ -31,4 +32,11 @@ class Request(models.Model):
     requested_clip=models.IntegerField(null=True)
     def __str__(self):
         return self.request_id.__str__()
+
+class SupportDb(models.Model):
+    email=models.EmailField()
+    ticket_id=models.CharField(max_length=50,primary_key=True)
+    subject=models.CharField(max_length=100)
+    body=models.TextField()
+    screenshot=models.ImageField(upload_to='screenshots/')
 

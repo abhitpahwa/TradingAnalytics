@@ -38,15 +38,25 @@
 <body>
     <ul>
         <li><a href="/home">Home</a></li>
+        {% if not risk %}
         <li><a href="/weeks">View Reports</a></li>
+        {% endif %}
+        {% if not risk %}
         <li><a href="/mylimits">View Limits</a></li>
+        {% endif %}
+        {% if not risk %}
         <li><a href="/requeststatus">Request Status</a></li>
+        {% endif %}
         {% if admin %}
         <li><a href="/adminlogin">Admin</a></li>
         {% endif %}
         {% if mentor %}
         <li><a href="/mentor">Mentor</a></li>
         {% endif %}
+        {% if risk %}
+        <li><a href="/risk">Risk</a></li>
+        {% endif %}
+        <li><a href="/support">Support</a></li>
         <li><a href="/logout">Logout</a></li>
     </ul>
 </body>

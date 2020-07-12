@@ -13,7 +13,7 @@
         .view {
           margin-left:20%;
           font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
-          border-collapse: collapse;
+          border-collapse: collapse;;
           width: 60%;
           text-align: center;
           table-layout:auto;
@@ -45,9 +45,10 @@
     <script>
         $(document).ready(function(){
             $('[id*="extra"]').toggle();
-            console.log(2);
             $('[id*="expand"]').on('click',function(){
                 $('#extra'+$(this).attr('id')).toggle();
+                console.log('#extra'+$(this).attr('id')+':last-child');
+                $('#extra'+$(this).attr('id')).css("border","");
             });
         });
     </script>
@@ -64,31 +65,39 @@
             </tr>
             {% for k,v in requests.items %}
                 {% for i in v %}
-                    <tr id="expand{{ i }}">
+                    <tr id="expand{{ i.0 }}">
                         <td>{{ k }}</td>
-                        <td>{{ i }}</td>
-                        <td>No</td>
-                        <td>No</td>
+                        <td>{{ i.0 }}</td>
+                        <td>{{ i.1 }}</td>
+                        <td>{{ i.2 }}</td>
 <!--                        <td><button id="expand{{ i }}">Show</button></td>-->
                     </tr>
-                    <tr id="extraexpand{{ i }}" class="leftalign">
-                        <td colspan="5">
+                    <tr id="extraexpand{{ i.0 }}" class="leftalign">
+                        <td colspan="4">
                             <div>
                                 {% for k1,v1 in details.items %}
                                     {% ifequal k k1 %}
                                         {% for val in v1 %}
-                                            {% if i == val.0 %}
+                                            {% if i.0 == val.0 %}
                                                 <ul class="list">
-                                                    <li>Product: {{ val.1 }}</li>
-                                                    <li>Type: {{ val.2 }}</li>
-                                                    <li>Limit: {{ val.3 }}</li>
-                                                    <li>Clip: {{ val.4 }}</li>
+                                                    <li>Trading Software: {{ val.1 }}</li>
+                                                    <li>Product: {{ val.2 }}</li>
+                                                    <li>Type: {{ val.3 }}</li>
+                                                    <li>Limit: {{ val.4 }}</li>
+                                                    <li>Clip: {{ val.5 }}</li>
                                                 </ul>
                                             {% endif %}
                                         {% endfor %}
                                     {% endifequal %}
                                 {% endfor %}
                             </div>
+                        </td>
+                        <td style="width:1em;vertical-align:center;border:none;">
+                            <form method="post" action="">
+                                {% csrf_token %}
+                                <input type="submit" name="approve{{ i.0 }}" value="Approve">
+                                <input type="submit" name="reject{{ i.0 }}" value="Reject">
+                            </form>
                         </td>
                     </tr>
                 {% endfor %}

@@ -10,6 +10,7 @@ from django.shortcuts import redirect
 from django.shortcuts import render
 from django.views import generic
 from .models import *
+from .forms import *
 
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -34,12 +35,13 @@ def checkmentor(name):
     ismentor=False
     mentors=set(Trader.objects.values_list("mentor"))
     mentors=[i[0] for i in mentors]
-    # print(name+"@axxela.in")
     if name+"@axxela.in" in mentors:
         ismentor=True
-    # print(ismentor)
-    # print(mentors)
     return ismentor
+
+def checkrisk(name):
+    isrisk=True if name=="risk" else False
+    return isrisk
 
 class UploadFileForm(forms.Form):
     file = forms.FileField(label="Choose File",widget=forms.ClearableFileInput(attrs={'multiple':True}))
@@ -47,7 +49,8 @@ class UploadFileForm(forms.Form):
 def HomeView(request):
     isadmin=checkadmin(request.user.get_username())
     ismentor=checkmentor(request.user.get_username())
-    return render(request,'Login/home.html',context={'name':request.user.get_full_name(),'admin':isadmin,'mentor':ismentor})
+    isrisk=checkrisk(request.user.get_username())
+    return render(request,'Login/home.html',context={'name':request.user.get_full_name(),'admin':isadmin,'mentor':ismentor,'risk':isrisk})
 
 class Weeks(generic.ListView):
     template_name = 'Login/weeks.html'
@@ -56,6 +59,8 @@ class Weeks(generic.ListView):
         context=super().get_context_data(**kwargs)
         context['name']=self.request.user.get_full_name().upper()
         context['admin']=checkadmin(self.request.user.get_username())
+        context['mentor']=checkmentor(self.request.user.get_username())
+        context['risk']=checkrisk(self.request.user.get_username())
         return context
     def get_queryset(self):
         data=Report.objects.all()
@@ -68,7 +73,7 @@ class Weeks(generic.ListView):
 
 def ReportView(request):
     # email=request.user.get_username()+"@axxela.in"
-    email="prince@axxela.in"
+    email="manoj.korrapati@axxela.in"
     trader_acc=Trader.objects.get(email=email)
     account=getattr(trader_acc,"account")
     week=request.GET.get('week','WEEK25')
@@ -116,6 +121,7 @@ def GetWorksheet():
 def GetContext(request):
     isadmin = checkadmin(request.user.get_username())
     ismentor = checkmentor(request.user.get_username())
+    isrisk = checkrisk(request.user.get_username())
     # email=request.user.get_username()+"@axxela.in"
     # trader_acc = Trader.objects.get(email=email)
     # account = getattr(trader_acc, "account")
@@ -159,6 +165,7 @@ def GetContext(request):
     context_pass["ct"] = ct
     context_pass["admin"] = isadmin
     context_pass["mentor"] = ismentor
+    context_pass["risk"]= isrisk
     context_pass["trading_accounts"] = trading_accounts
     context_pass['stellar'] = stellar_options
     context_pass['tt'] = tt_options
@@ -184,7 +191,7 @@ def MyLimits(request):
                                                                                  and request.POST[name]!='']
             msg=""
 
-            email = "prince@axxela.in"
+            email = "manoj.korrapati@axxela.in"
             trader = Trader.objects.get(email=email)
 
             last_id = len(Request_Trader_Mapping.objects.all())
@@ -233,7 +240,10 @@ def MyLimits(request):
 
 
             context_pass["request_sent"]=True
-            # send_mail(subject,body,"risk@axxela.in",["abhit.pahwa@axxela.in"],fail_silently=False)
+
+            mentor=getattr(Trader.objects.get(email=email),'mentor')
+
+            # send_mail(subject,body,"risk@axxela.in",[mentor],fail_silently=False)
 
 
 
@@ -257,7 +267,7 @@ def MyLimits(request):
             body = "Hi, can you please process the following request to add products!\n\n"
             body+="Account: "+account+"\n"
 
-            email = "prince@axxela.in"
+            email = "manoj.korrapati@axxela.in"
             trader = Trader.objects.get(email=email)
 
             last_id = len(Request_Trader_Mapping.objects.all())
@@ -285,11 +295,13 @@ def MyLimits(request):
             body+="Thanks and Regards" + "\n" + request.user.get_full_name() + "\n\n" + \
                    "TimeStamp: " + str(datetime.datetime.now().strftime("%Y-%m-%d, %H:%M")) + "\n"
             context_pass["request_sent"] = True
-            # # send_mail(subject,body,"risk@axxela.in",["abhit.pahwa@axxela.in"],fail_silently=False)
+
+            mentor = getattr(Trader.objects.get(email=email), 'mentor')
+            # # send_mail(subject,body,"risk@axxela.in",[mentor],fail_silently=False)
             return render(request, 'Login/limits.html', context=context_pass)
 
 def RequestHistory(request):
-    user_requests=Request_Trader_Mapping.objects.filter(email="prince@axxela.in")
+    user_requests=Request_Trader_Mapping.objects.filter(email="manoj.korrapati@axxela.in")
     user_requests_details=[]
     for i in user_requests:
         req_id=i.request_id
@@ -309,12 +321,29 @@ def RequestHistory(request):
             temp.append(temp_clip)
         else:
             temp.append('')
+        temp.append(getattr(i,'mentor_approval'))
+        temp.append(getattr(i,'risk_approval'))
         user_requests_details.append(temp)
+    user_requests_details.reverse()
     isadmin = checkadmin(request.user.get_username())
     ismentor = checkmentor(request.user.get_username())
-    return render(request,'Login/request_history.html',context={"admin":isadmin,"mentor":ismentor,"requests":user_requests_details})
+    isrisk=checkrisk(request.user.get_username())
+    return render(request,'Login/request_history.html',context={"admin":isadmin,"mentor":ismentor,\
+                                                                "risk":isrisk,"requests":user_requests_details})
 
 def MentorView(request):
+    if request.method=="POST":
+        approve_request_id=[i for i in request.POST.keys() if "approve" in i]
+        reject_request_id=[i for i in request.POST.keys() if "reject" in i]
+        if approve_request_id:
+            approve_request_id=approve_request_id[0][7:]
+            request_object = Request_Trader_Mapping.objects.get(request_id=approve_request_id)
+            request_object.mentor_approval = "Approved"
+        if reject_request_id:
+            reject_request_id=reject_request_id[0][6:]
+            request_object = Request_Trader_Mapping.objects.get(request_id=reject_request_id)
+            request_object.mentor_approval = "Rejected"
+        request_object.save()
     all_requests=Request_Trader_Mapping.objects.all()
     accounts=set([getattr(i,"email") for i in all_requests])
     traders=[Trader.objects.get(email=i) for i in list(accounts)]
@@ -324,9 +353,10 @@ def MentorView(request):
     my_traders_detailed_requests={}
     for trader in my_traders:
         trader_email=getattr(trader, "email")
-        trader_requests=Request_Trader_Mapping.objects.filter(email=trader_email)
-        temp=[getattr(i,"request_id") for i in trader_requests]
-        temp_requests=[Request.objects.get(request_id=i) for i in temp]
+        trader_requests=Request_Trader_Mapping.objects.filter(email=trader_email,mentor_approval="Pending")
+        temp=[[getattr(i,"request_id"),getattr(i,"mentor_approval"),getattr(i,"risk_approval")] for i in trader_requests]
+        temp.reverse()
+        temp_requests=[Request.objects.get(request_id=i) for i in [j[0] for j in temp]]
         temp_detail=[[getattr(i,"request_id"),getattr(i,"trading_software"),getattr(i,"product"),\
                       getattr(i,"product_type"),getattr(i,"requested_limit"),getattr(i,"requested_clip")] \
                      for i in temp_requests]
@@ -334,7 +364,95 @@ def MentorView(request):
             i[0]=getattr(i[0],'request_id')
         my_traders_requests[trader_email]=temp
         my_traders_detailed_requests[trader_email]=temp_detail
-    # print(my_traders_detailed_requests)
+
     isadmin = checkadmin(request.user.get_username())
     ismentor = checkmentor(request.user.get_username())
-    return render(request,'Login/mentor_view.html',context={"admin":isadmin,"mentor":ismentor,"requests":my_traders_requests,'details':my_traders_detailed_requests})
+    isrisk=checkrisk(request.user.get_username())
+    return render(request,'Login/mentor_view.html',context={"admin":isadmin,"mentor":ismentor,\
+                                                            "risk":isrisk,\
+                                                            "requests":my_traders_requests,\
+                                                            'details':my_traders_detailed_requests})
+
+def RiskView(request):
+    if request.method == "POST":
+        approve_request_id = [i for i in request.POST.keys() if "approve" in i]
+        reject_request_id = [i for i in request.POST.keys() if "reject" in i]
+        if approve_request_id:
+            approve_request_id = approve_request_id[0][7:]
+            request_object = Request_Trader_Mapping.objects.get(request_id=approve_request_id)
+            request_object.risk_approval = "Approved"
+
+            sheet = GetWorksheet()
+            list_of_hashes = sheet.get_all_records()
+            request_detail=Request.objects.get(request_id=approve_request_id)
+
+            # email=getattr(request_object,'email')
+            # trader_acc=getattr(Trader.objects.get(email=email),'account')
+            # print(trader_acc)
+            account="LGBEE009"
+
+
+            trading_software=getattr(request_detail,'trading_software')
+            product=getattr(request_detail,'product')
+            product_type=getattr(request_detail,'product_type')
+            limit=getattr(request_detail,'requested_limit')
+            clip=getattr(request_detail,'requested_clip')
+            print(trading_software,product,product_type)
+            # print(list_of_hashes[0].keys())
+            if limit:
+                account_col=list(list_of_hashes[0].keys()).index(account)+1
+                for i,row in enumerate(list_of_hashes):
+                    if row["Account"]==trading_software and row["Products"]==product and row["Type"]==product_type:
+                        row_col=i+2
+                        break
+                sheet.update_cell(row_col,account_col,limit)
+        if reject_request_id:
+            reject_request_id = reject_request_id[0][6:]
+            request_object = Request_Trader_Mapping.objects.get(request_id=reject_request_id)
+            request_object.risk_approval = "Rejected"
+        # request_object.save()
+    context={}
+    context["admin"]=checkadmin(request.user.get_username())
+    context["mentor"]=checkmentor(request.user.get_username())
+    context["risk"]=checkrisk(request.user.get_username())
+
+    approved_requests=Request_Trader_Mapping.objects.filter(mentor_approval="Approved",risk_approval="Pending")
+    request_brief=[[getattr(i,'request_id'),getattr(i,'email'),getattr(i,'account')] for i in approved_requests]
+    request_brief.reverse()
+    request_ids = [Request.objects.get(request_id=i) for i in [j[0] for j in request_brief]]
+    request_detail = [[getattr(i, "request_id"), getattr(i, "trading_software"), getattr(i, "product"), \
+                       getattr(i, "product_type"), getattr(i, "requested_limit"), getattr(i, "requested_clip")] \
+                       for i in request_ids]
+    for i in request_detail:
+        i[0] = getattr(i[0], 'request_id')
+
+    context['brief']=request_brief
+    context['detail']=request_detail
+
+
+    return render(request,'Login/risk_view.html',context=context)
+
+def Support(request):
+    context={}
+    context["admin"]=checkadmin(request.user.get_username())
+    context["mentor"]=checkmentor(request.user.get_username())
+    context["risk"]=checkrisk(request.user.get_username())
+    if context["risk"]:
+        tickets=SupportDb.objects.all()
+        tickets_dict={}
+        for i in tickets:
+            tickets_dict[i.ticket_id]=[i.subject,i.body,i.screenshot.url]
+        context["tickets_dict"]=tickets_dict
+        return render(request,'Login/support.html',context=context)
+    form=SupportForm()
+    context["form"]=form
+    if request.method=="POST":
+        print(request.POST.keys())
+        last_id=len(SupportDb.objects.all())
+        new_id="Ticket-"+str(last_id+1)
+        subject=request.POST["subject"]
+        body=request.POST["body"]
+        screenshot=request.FILES["screenshot"]
+        new_support=SupportDb(email=request.user.email,ticket_id=new_id,subject=subject,body=body,screenshot=screenshot)
+        new_support.save()
+    return render(request,'Login/support.html',context=context)
