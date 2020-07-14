@@ -19,7 +19,11 @@ UPLOAD TRADERS_MAPPING
         {% csrf_token %}
         <br><input id="btn1" name="traders" type="submit" value="Upload data">
 </form>
-REMINDER
+UPDATE EXPIRY
+<form class="form-class" action="" method="post">
+    {% csrf_token %}
+    <input type="submit" name="update expiry" type="submit" value="Update">
+</form>
 
 </body>
 </html>

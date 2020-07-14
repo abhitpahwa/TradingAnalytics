@@ -107,15 +107,29 @@ def AdminView(request):
                     mapdict=['account','email','mentor']
                 )
                 return HttpResponse("done")
-
+        else:
+            if 'update expiry' in request.POST:
+                sheet=GetWorksheet("expiry")
+                list_of_hashes=sheet.get_all_records()
+                for row in list_of_hashes:
+                    for k in row.keys():
+                        if k!="Exchange" and k!="Product":
+                            if row[k]!='':
+                                expiry_date=datetime.datetime.strptime(row[k],"%m/%d/%y %H:%M")
+                                product=row["Exchange"]+" "+row["Product"]+" "+k
+                                event_obj=Event(product=product,expiry=expiry_date)
+                                event_obj.save()
     form=UploadFileForm()
     return render(request,'Login/upload.html',context={'form':form})
 
-def GetWorksheet():
+def GetWorksheet(required_sheet="limits"):
     scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
     creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
     client = gspread.authorize(creds)
-    sheet = client.open('Limits').sheet1
+    if required_sheet=="limits":
+        sheet = client.open('Limits').sheet1
+    elif required_sheet=="expiry":
+        sheet=client.open("Expiry").sheet1
     return sheet
 
 def GetContext(request):
@@ -410,7 +424,7 @@ def RiskView(request):
             reject_request_id = reject_request_id[0][6:]
             request_object = Request_Trader_Mapping.objects.get(request_id=reject_request_id)
             request_object.risk_approval = "Rejected"
-        # request_object.save()
+        request_object.save()
     context={}
     context["admin"]=checkadmin(request.user.get_username())
     context["mentor"]=checkmentor(request.user.get_username())
@@ -456,3 +470,54 @@ def Support(request):
         new_support=SupportDb(email=request.user.email,ticket_id=new_id,subject=subject,body=body,screenshot=screenshot)
         new_support.save()
     return render(request,'Login/support.html',context=context)
+
+import datetime as dt
+
+from django.shortcuts import render
+from django.http import HttpResponse
+from django.views import generic
+from django.utils.safestring import mark_safe
+
+from .models import *
+from .utils import Calendar
+import calendar
+
+class CalendarView(generic.ListView):
+    model = Event
+    template_name = 'Login/calendar.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # use today's date for the calendar
+        # print(self.request.GET.get('month', None))
+        d = get_date(self.request.GET.get('month', None))
+        # print(d)
+        # Instantiate our calendar class with today's year and date
+        cal = Calendar(d.year, d.month)
+
+        # Call the formatmonth method, which returns our calendar as a table
+        html_cal = cal.formatmonth(withyear=True)
+        context['calendar'] = mark_safe(html_cal)
+        context['prev_month'] = prev_month(d)
+        context['next_month'] = next_month(d)
+        return context
+
+def get_date(req_day):
+    if req_day:
+        year, month = (int(x) for x in req_day.split('-'))
+        return dt.date(year, month, day=1)
+    return dt.datetime.today()
+
+def prev_month(d):
+    first = d.replace(day=1)
+    prev_month = first - dt.timedelta(days=1)
+    month = 'month=' + str(prev_month.year) + '-' + str(prev_month.month)
+    return month
+
+def next_month(d):
+    days_in_month = calendar.monthrange(d.year, d.month)[1]
+    last = d.replace(day=days_in_month)
+    next_month = last + dt.timedelta(days=1)
+    month = 'month=' + str(next_month.year) + '-' + str(next_month.month)
+    return month

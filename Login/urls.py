@@ -3,6 +3,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from . import views
 
+from django.conf.urls import url
+import re
 app_name="login"
 
 urlpatterns=[
@@ -16,6 +18,7 @@ urlpatterns=[
     path('mentor/',views.MentorView,name="mentor"),
     path('risk/',views.RiskView),
     path('support/',views.Support),
+    url(r'^calendar/$', views.CalendarView.as_view(), name='calendar'),
     path('logout/',views.logout)
 ]+static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)
 

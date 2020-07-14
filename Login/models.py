@@ -40,3 +40,7 @@ class SupportDb(models.Model):
     body=models.TextField()
     screenshot=models.ImageField(upload_to='screenshots/')
 
+class Event(models.Model):
+    product = models.CharField(max_length=200)
+    expiry = models.DateTimeField()
+
