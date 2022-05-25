@@ -27,7 +27,7 @@ pycparser==2.20
 pyexcel==0.6.2
 pyexcel-io==0.5.20
 pyexcel-webio==0.1.4
-PyJWT==1.7.1
+PyJWT==2.4.0
 python-openid==2.2.5
 python-social-auth==0.3.6
 python3-openid==3.1.0
